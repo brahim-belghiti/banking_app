@@ -1,5 +1,5 @@
 import api from "./axios"
-import type { DepositRequest, Transaction, TransactionCategory, TransactionType, TransferRequest } from "../types"
+import type { DepositRequest, Transaction, TransactionCategory, TransactionType, TransferRequest } from "@/types"
 
 type TransactionFilters = {
   dateFrom?: string
