@@ -35,64 +35,60 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex w-full h-full items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
-      <div className="w-full w-full rounded-2xl border border-white/10 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <label className="mb-2 block text-sm font-medium text-slate-200">
+    <div className="w-full">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
             Email
           </label>
           <input
             {...register("email")}
             type="email"
-            placeholder="Enter your email"
-            className={`w-full rounded-xl border bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none transition-all duration-200 focus:ring-2 ${
+            placeholder="you@example.com"
+            className={`w-full rounded-xl border bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:ring-2 text-sm ${
               errors.email
-                ? "border-red-500 focus:ring-red-500"
-                : "border-white/10 focus:border-blue-500 focus:ring-blue-500"
+                ? "border-red-400 focus:ring-red-300"
+                : "border-stone-300 focus:border-emerald-500 focus:ring-emerald-200"
             }`}
           />
           {errors.email && (
-            <p className="mt-2 text-sm text-red-400">{errors.email.message}</p>
+            <p className="mt-1.5 text-xs text-red-500">{errors.email.message}</p>
           )}
-          {/* Password */}
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-200">
-              Password
-            </label>
-
-            <input
-              {...register("password")}
-              type="password"
-              placeholder="Enter your password"
-              className={`w-full rounded-xl border bg-white/5 px-4 py-3 text-white placeholder:text-slate-400 outline-none transition-all duration-200 focus:ring-2 ${
-                errors.password
-                  ? "border-red-500 focus:ring-red-500"
-                  : "border-white/10 focus:border-blue-500 focus:ring-blue-500"
-              }`}
-            />
-
-            {errors.password && (
-              <p className="mt-2 text-sm text-red-400">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-xl bg-blue-600 py-3 font-semibold text-white shadow-lg shadow-blue-600/30 transition-all duration-200 hover:bg-blue-500 hover:shadow-blue-500/40 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isSubmitting ? "Logging in..." : "Login"}
-          </button>
-        </form>
-        {error && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            {error}
-          </div>
-        )}
-      </div>
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Password
+          </label>
+          <input
+            {...register("password")}
+            type="password"
+            placeholder="••••••••"
+            className={`w-full rounded-xl border bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-200 focus:ring-2 text-sm ${
+              errors.password
+                ? "border-red-400 focus:ring-red-300"
+                : "border-stone-300 focus:border-emerald-500 focus:ring-emerald-200"
+            }`}
+          />
+          {errors.password && (
+            <p className="mt-1.5 text-xs text-red-500">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-xl py-3 font-semibold text-white text-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70"
+          style={{ background: "#0f2419" }}
+        >
+          {isSubmitting ? "Signing in..." : "Sign in →"}
+        </button>
+      </form>
+      {error && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { useAuthStore } from "@/stores/auth";
 import { ProtectedRoute, AdminRoute } from "@/components/protected-route";
 import LoginPage from "./pages/login";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import DashboardPage from "./pages/dashboard";
+import DashboardLayout from "@/components/layout/dashboard-layout";
 
 const queryClient = new QueryClient();
 
@@ -23,11 +25,13 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<div>Dashboard</div>} />
-            <Route path="/accounts/:id" element={<div>Account Detail</div>} />
+            <Route element={<DashboardLayout />}>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/accounts/:id" element={<div>Account Detail</div>} />
 
-            <Route element={<AdminRoute />}>
-              <Route path="/users" element={<div>Users</div>} />
+              <Route element={<AdminRoute />}>
+                <Route path="/users" element={<div>Users</div>} />
+              </Route>
             </Route>
           </Route>
         </Routes>
