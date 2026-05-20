@@ -1,0 +1,131 @@
+import type { User,Account, Transaction } from "@/types"
+
+export const users: (User & { password: string })[] = [
+  {
+    id: "1",
+    email: "client@bank.ma",
+    password: "password",
+    firstName: "Youssef",
+    lastName: "Amrani",
+    role: "client",
+    createdAt: "2025-01-15T10:00:00Z",
+  },
+  {
+    id: "2",
+    email: "admin@bank.ma",
+    password: "password",
+    firstName: "Soukaina",
+    lastName: "El Fassi",
+    role: "admin",
+    createdAt: "2024-06-01T08:00:00Z",
+  },
+]
+
+
+
+
+export const accounts: Account[] = [
+  {
+    id: "acc-1",
+    userId: "1",
+    label: "Compte Courant",
+    type: "checking",
+    balance: 1_250_000, // 12,500.00 MAD in centimes
+    currency: "MAD",
+    status: "active",
+    createdAt: "2025-01-15T10:00:00Z",
+  },
+  {
+    id: "acc-2",
+    userId: "1",
+    label: "Compte Épargne",
+    type: "savings",
+    balance: 5_430_000, // 54,300.00 MAD
+    currency: "MAD",
+    status: "active",
+    createdAt: "2025-03-01T08:00:00Z",
+  },
+  {
+    id: "acc-3",
+    userId: "2",
+    label: "Compte Courant",
+    type: "checking",
+    balance: 3_200_000,
+    currency: "MAD",
+    status: "active",
+    createdAt: "2024-06-01T08:00:00Z",
+  },
+]
+
+export const transactions: Transaction[] = [
+  {
+    id: "tx-1",
+    fromAccountId: "acc-1",
+    toAccountId: null,
+    amount: 150_000,
+    currency: "MAD",
+    type: "payment",
+    category: "food",
+    label: "Marjane Hay Riad",
+    status: "completed",
+    reference: "REF-001",
+    createdAt: "2026-05-18T14:30:00Z",
+    completedAt: "2026-05-18T14:30:00Z",
+  },
+  {
+    id: "tx-2",
+    fromAccountId: null,
+    toAccountId: "acc-1",
+    amount: 850_000,
+    currency: "MAD",
+    type: "deposit",
+    category: "salary",
+    label: "Salaire Mai 2026",
+    status: "completed",
+    reference: "REF-002",
+    createdAt: "2026-05-01T09:00:00Z",
+    completedAt: "2026-05-01T09:00:00Z",
+  },
+  {
+    id: "tx-3",
+    fromAccountId: "acc-1",
+    toAccountId: null,
+    amount: 50_000,
+    currency: "MAD",
+    type: "payment",
+    category: "transport",
+    label: "Tramway Rabat-Salé",
+    status: "completed",
+    reference: "REF-003",
+    createdAt: "2026-05-15T08:00:00Z",
+    completedAt: "2026-05-15T08:00:00Z",
+  },
+  {
+    id: "tx-4",
+    fromAccountId: "acc-1",
+    toAccountId: "acc-2",
+    amount: 200_000,
+    currency: "MAD",
+    type: "transfer",
+    category: "housing",
+    label: "Virement vers épargne",
+    status: "completed",
+    reference: "REF-004",
+    createdAt: "2026-05-10T11:00:00Z",
+    completedAt: "2026-05-10T11:00:00Z",
+  },
+  {
+    id: "tx-5",
+    fromAccountId: "acc-1",
+    toAccountId: null,
+    amount: 120_000,
+    currency: "MAD",
+    type: "payment",
+    category: "utilities",
+    label: "Facture Inwi",
+    status: "pending",
+    reference: "REF-005",
+    createdAt: "2026-05-19T16:00:00Z",
+    completedAt: null,
+  },
+]
