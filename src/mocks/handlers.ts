@@ -11,34 +11,6 @@ function getUserFromRequest(request: Request) {
 
 export const handlers = [
   http.post("/api/auth/login", async ({ request }) => {
-    const { email, password } = await request.json() as { email: string; password: string }
-    const user = users.find((u) => u.email === email && u.password === password)
-
-    if (!user) {
-      return HttpResponse.json({ message: "Invalid credentials" }, { status: 401 })
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = user
-    return HttpResponse.json({ token: `fake-jwt-${user.id}`, user: safeUser })
-  }),
-
-  http.get("/api/auth/me", ({ request }) => {
-    const header = request.headers.get("Authorization")
-    const token = header?.replace("Bearer ", "")
-    const userId = token?.replace("fake-jwt-", "")
-    const user = users.find((u) => u.id === userId)
-
-    if (!user) {
-      return HttpResponse.json({ message: "Unauthorized" }, { status: 401 })
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...safeUser } = user
-    return HttpResponse.json(safeUser)
-  }),
-
-  http.post("/api/auth/login", async ({ request }) => {
     const { email, password } = (await request.json()) as { email: string; password: string }
     const user = users.find((u) => u.email === email && u.password === password)
     if (!user) return HttpResponse.json({ message: "Invalid credentials" }, { status: 401 })
@@ -92,5 +64,47 @@ export const handlers = [
     )
 
     return HttpResponse.json(accountTx)
+  }),
+
+  http.get("/api/accounts/:id/analytics", ({ request, params }) => {
+    const user = getUserFromRequest(request)
+    if (!user) return HttpResponse.json({ message: "Unauthorized" }, { status: 401 })
+
+    const account = accounts.find((a) => a.id === params.id)
+    if (!account) return HttpResponse.json({ message: "Not found" }, { status: 404 })
+    if (user.role !== "admin" && account.userId !== user.id) {
+      return HttpResponse.json({ message: "Forbidden" }, { status: 403 })
+    }
+
+    const url = new URL(request.url)
+    const period = url.searchParams.get("period") || "month"
+
+    const outgoing = transactions.filter(
+      (t) => t.fromAccountId === params.id && t.status === "completed"
+    )
+    const totalSpent = outgoing.reduce((sum, t) => sum + t.amount, 0)
+
+    const categoryTotals = outgoing.reduce<Record<string, number>>((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount
+      return acc
+    }, {})
+
+    const breakdown = Object.entries(categoryTotals).map(([category, total]) => ({
+      category,
+      total,
+      percentage: totalSpent > 0 ? Math.round((total / totalSpent) * 100) : 0,
+    }))
+
+    const totalIncome = transactions
+      .filter((t) => t.toAccountId === params.id && t.status === "completed")
+      .reduce((sum, t) => sum + t.amount, 0)
+
+    return HttpResponse.json({
+      accountId: params.id,
+      period,
+      totalSpent,
+      totalIncome,
+      breakdown,
+    })
   }),
 ]
