@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw"
 import { users, accounts, transactions } from "./data"
+import type { Transaction } from "@/types"
 
 function getUserFromRequest(request: Request) {
   const header = request.headers.get("Authorization")
@@ -106,5 +107,66 @@ export const handlers = [
       totalIncome,
       breakdown,
     })
+  }),
+  http.post("/api/transactions/transfer", async ({ request }) => {
+    const user = getUserFromRequest(request)
+    if (!user) return HttpResponse.json({ message: "Unauthorized" }, { status: 401 })
+
+    const body = await request.json() as {
+      fromAccountId: string
+      toAccountId: string
+      amount: number
+      label: string
+      category: string
+    }
+
+    const newTx: Transaction = {
+      id: `tx-${Date.now()}`,
+      fromAccountId: body.fromAccountId,
+      toAccountId: body.toAccountId,
+      amount: body.amount,
+      currency: "MAD",
+      type: "transfer",
+      category: body.category as Transaction["category"],
+      label: body.label,
+      status: body.fromAccountId.startsWith("acc-") && body.toAccountId.startsWith("acc-")
+        ? "completed" : "pending",
+      reference: `REF-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+    }
+
+    transactions.push(newTx)
+    return HttpResponse.json(newTx, { status: 201 })
+  }),
+
+  http.post("/api/transactions/deposit", async ({ request }) => {
+    const user = getUserFromRequest(request)
+    if (!user) return HttpResponse.json({ message: "Unauthorized" }, { status: 401 })
+
+    const body = await request.json() as {
+      toAccountId: string
+      amount: number
+      label: string
+      category: string
+    }
+
+    const newTx: Transaction = {
+      id: `tx-${Date.now()}`,
+      fromAccountId: null,
+      toAccountId: body.toAccountId,
+      amount: body.amount,
+      currency: "MAD",
+      type: "deposit",
+      category: body.category as Transaction["category"],
+      label: body.label,
+      status: "completed",
+      reference: `REF-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+    }
+
+    transactions.push(newTx)
+    return HttpResponse.json(newTx, { status: 201 })
   }),
 ]

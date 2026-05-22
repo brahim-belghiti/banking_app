@@ -4,6 +4,10 @@ import { useTransactions } from "@/hooks/use-transactions";
 import { getAccountById } from "@/api/accounts";
 import { ArrowLeft } from "lucide-react";
 import TransactionsTable from "@/components/account/transactions-table";
+import { useState } from "react";
+import TransferForm from "@/components/account/transfer-form";
+import DepositForm from "@/components/account/deposit-form";
+import { ArrowRightLeft, PlusCircle } from "lucide-react";
 
 function formatBalance(centimes: number): string {
   return (centimes / 100).toLocaleString("fr-MA", {
@@ -21,6 +25,9 @@ const statusLabels: Record<string, string> = {
 export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [activeForm, setActiveForm] = useState<"transfer" | "deposit" | null>(
+    null,
+  );
 
   const { data: account, isLoading: loadingAccount } = useQuery({
     queryKey: ["account", id],
@@ -38,7 +45,8 @@ export default function AccountDetailPage() {
     );
   }
 
-  if (!account) return <p className="p-8 text-red-500 text-sm">Account not found.</p>;
+  if (!account)
+    return <p className="p-8 text-red-500 text-sm">Account not found.</p>;
 
   const statusStyles: Record<string, string> = {
     active: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -61,11 +69,17 @@ export default function AccountDetailPage() {
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1">
-              {account.type === "checking" ? "Checking Account" : "Savings Account"}
+              {account.type === "checking"
+                ? "Checking Account"
+                : "Savings Account"}
             </p>
-            <h1 className="text-xl font-semibold text-gray-900">{account.label}</h1>
+            <h1 className="text-xl font-semibold text-gray-900">
+              {account.label}
+            </h1>
           </div>
-          <span className={`px-3 py-1 text-xs font-medium rounded-full border ${statusStyles[account.status]}`}>
+          <span
+            className={`px-3 py-1 text-xs font-medium rounded-full border ${statusStyles[account.status]}`}
+          >
             {statusLabels[account.status]}
           </span>
         </div>
@@ -73,9 +87,63 @@ export default function AccountDetailPage() {
           {formatBalance(account.balance)}
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          Opened {new Date(account.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+          Opened{" "}
+          {new Date(account.createdAt).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
         </p>
       </div>
+
+      {/* Action buttons */}
+      {account.status === "active" && (
+        <div className="flex gap-3">
+          <button
+            onClick={() =>
+              setActiveForm(activeForm === "transfer" ? null : "transfer")
+            }
+            className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-stone-50"
+          >
+            <ArrowRightLeft size={15} />
+            Nouveau virement
+          </button>
+          <button
+            onClick={() =>
+              setActiveForm(activeForm === "deposit" ? null : "deposit")
+            }
+            className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-stone-50"
+          >
+            <PlusCircle size={15} />
+            Nouveau dépôt
+          </button>
+        </div>
+      )}
+
+      {/* Inline forms */}
+      {activeForm === "transfer" && (
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">
+            Nouveau virement
+          </h2>
+          <TransferForm
+            fromAccount={account}
+            onClose={() => setActiveForm(null)}
+          />
+        </div>
+      )}
+
+      {activeForm === "deposit" && (
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">
+            Nouveau dépôt
+          </h2>
+          <DepositForm
+            toAccount={account}
+            onClose={() => setActiveForm(null)}
+          />
+        </div>
+      )}
 
       {/* Transactions */}
       <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
@@ -89,7 +157,9 @@ export default function AccountDetailPage() {
         ) : transactions?.length ? (
           <TransactionsTable transactions={transactions} accountId={id!} />
         ) : (
-          <p className="text-gray-400 text-sm py-8 text-center">No transactions yet</p>
+          <p className="text-gray-400 text-sm py-8 text-center">
+            No transactions yet
+          </p>
         )}
       </div>
     </div>
