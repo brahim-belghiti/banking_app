@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth";
-import { LayoutDashboard, CreditCard, User, LogOut } from "lucide-react";
+import { LayoutDashboard, CreditCard, User, LogOut, Users } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -25,9 +25,7 @@ export default function DashboardLayout() {
       >
         <div className="px-6 py-7">
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-full bg-emerald-400 flex items-center justify-center flex-shrink-0"
-            >
+            <div className="w-8 h-8 rounded-full bg-emerald-400 flex items-center justify-center flex-shrink-0">
               <span className="font-bold text-xs" style={{ color: "#0f2419" }}>
                 FD
               </span>
@@ -57,7 +55,15 @@ export default function DashboardLayout() {
             </NavLink>
           ))}
         </nav>
-
+        {user?.role === "admin" && (
+          <button
+            onClick={() => navigate("/users")}
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800"
+          >
+            <Users size={15} />
+            Clients
+          </button>
+        )}
         <div className="p-4 border-t border-white/10">
           <div className="px-3 py-2 mb-3">
             <p className="text-xs font-medium text-white truncate">

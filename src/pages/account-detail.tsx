@@ -3,11 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useTransactions } from "@/hooks/use-transactions";
 import { getAccountById } from "@/api/accounts";
 import { ArrowLeft } from "lucide-react";
-import TransactionsTable from "@/components/account/transactions-table";
+import TransactionsTable from "@/components/account/transactons-table/transactions-table";
 import { useState } from "react";
 import TransferForm from "@/components/account/transfer-form";
 import DepositForm from "@/components/account/deposit-form";
 import { ArrowRightLeft, PlusCircle } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateAccountStatus } from "@/api/accounts";
+import { useAuthStore } from "@/stores/auth";
+import { ShieldOff, Lock, Unlock } from "lucide-react";
 
 function formatBalance(centimes: number): string {
   return (centimes / 100).toLocaleString("fr-MA", {
@@ -33,6 +37,18 @@ export default function AccountDetailPage() {
     queryKey: ["account", id],
     queryFn: () => getAccountById(id!),
     enabled: !!id,
+  });
+
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      updateAccountStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account", id] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    },
   });
 
   const { data: transactions, isLoading: loadingTx } = useTransactions(id);
@@ -95,7 +111,43 @@ export default function AccountDetailPage() {
           })}
         </p>
       </div>
-
+      {user?.role === "admin" && (
+        <div className="flex gap-2 mt-4 pt-4 border-t border-stone-100">
+          {account.status === "active" && (
+            <button
+              onClick={() =>
+                statusMutation.mutate({ id: account.id, status: "frozen" })
+              }
+              className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-100"
+            >
+              <Lock size={13} />
+              Geler le compte
+            </button>
+          )}
+          {account.status === "frozen" && (
+            <button
+              onClick={() =>
+                statusMutation.mutate({ id: account.id, status: "active" })
+              }
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
+            >
+              <Unlock size={13} />
+              Réactiver le compte
+            </button>
+          )}
+          {account.status !== "closed" && (
+            <button
+              onClick={() =>
+                statusMutation.mutate({ id: account.id, status: "closed" })
+              }
+              className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100"
+            >
+              <ShieldOff size={13} />
+              Clôturer le compte
+            </button>
+          )}
+        </div>
+      )}
       {/* Action buttons */}
       {account.status === "active" && (
         <div className="flex gap-3">

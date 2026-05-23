@@ -169,4 +169,42 @@ export const handlers = [
     transactions.push(newTx)
     return HttpResponse.json(newTx, { status: 201 })
   }),
+
+  http.get("/api/users", ({ request }) => {
+    const user = getUserFromRequest(request)
+    if (!user) return HttpResponse.json({ message: "Unauthorized" }, { status: 401 })
+    if (user.role !== "admin") return HttpResponse.json({ message: "Forbidden" }, { status: 403 })
+
+    const safeUsers = users
+      .filter((u) => u.role === "client")
+      .map(({ password: _, ...u }) => u)
+
+    return HttpResponse.json(safeUsers)
+  }),
+
+  http.patch("/api/accounts/:id/status", async ({ request, params }) => {
+    const user = getUserFromRequest(request)
+    if (!user) return HttpResponse.json({ message: "Unauthorized" }, { status: 401 })
+    if (user.role !== "admin") return HttpResponse.json({ message: "Forbidden" }, { status: 403 })
+
+    const { status } = await request.json() as { status: string }
+    const account = accounts.find((a) => a.id === params.id)
+    if (!account) return HttpResponse.json({ message: "Not found" }, { status: 404 })
+
+    account.status = status as typeof account.status
+    return HttpResponse.json(account)
+  }),
+  http.patch("/api/transactions/:id/cancel", ({ request, params }) => {
+    const user = getUserFromRequest(request)
+    if (!user) return HttpResponse.json({ message: "Unauthorized" }, { status: 401 })
+
+    const tx = transactions.find((t) => t.id === params.id)
+    if (!tx) return HttpResponse.json({ message: "Not found" }, { status: 404 })
+    if (tx.status !== "pending") {
+      return HttpResponse.json({ message: "Seules les transactions en attente peuvent être annulées" }, { status: 400 })
+    }
+
+    tx.status = "cancelled"
+    return HttpResponse.json(tx)
+  })
 ]

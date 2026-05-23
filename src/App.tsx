@@ -9,6 +9,7 @@ import DashboardLayout from "@/components/layout/dashboard-layout";
 import AccountDetailPage from "./pages/account-detail";
 import ProfilePage from "./pages/profile";
 import AccountsPage from "./pages/accounts";
+import AdminUsersPage from "./pages/admin-users";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +36,7 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
 
               <Route element={<AdminRoute />}>
-                <Route path="/users" element={<div>Users</div>} />
+                <Route path="/users" element={<AdminUsersPage />} />
               </Route>
             </Route>
           </Route>

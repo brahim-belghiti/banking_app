@@ -1,4 +1,4 @@
-import type { AuthResponse, Credential, User } from "../types"
+import type { AuthResponse, Credential, User } from "@/types"
 import api from "./axios"
 
 export async function login(credentials: Credential): Promise<AuthResponse> {

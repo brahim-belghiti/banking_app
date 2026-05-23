@@ -1,4 +1,4 @@
-import type { Account, TransferRequest, DepositRequest } from "@/types"
+import type { Account, TransferRequest, DepositRequest, Transaction } from "@/types"
 
 type RuleResult = { valid: true } | { valid: false; message: string }
 
@@ -39,5 +39,12 @@ export function validateDeposit(
 
     if (request.amount <= 0) return { valid: false, message: "Le montant doit être supérieur à 0" }
 
+    return { valid: true }
+}
+
+export function canCancelTransaction(tx: Transaction): RuleResult {
+    if (tx.status !== "pending") {
+        return { valid: false, message: "Seules les transactions en attente peuvent être annulées" }
+    }
     return { valid: true }
 }
