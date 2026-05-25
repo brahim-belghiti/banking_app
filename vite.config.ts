@@ -19,6 +19,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
-    globals: true
+    globals: true,
+    coverage: {
+      reporter: ["text", "lcov"],
+      exclude: ["src/mocks/**", "src/components/ui/**"],
+    },
   }
 })
