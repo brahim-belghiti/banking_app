@@ -1,75 +1,136 @@
-# React + TypeScript + Vite
+# FinDash — Personal Finance Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A client-side React SPA simulating an online banking portal. Built as a technical demonstration covering React, TypeScript, REST API integration, domain-driven business rules, role-based access control, and unit testing.
 
-Currently, two official plugins are available:
+## Live Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+[Deployed on Vercel →](#) _(coming soon)_
 
-## React Compiler
+**Test credentials:**
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+| Role   | Email            | Password   |
+| ------ | ---------------- | ---------- |
+| Client | `client@bank.ma` | `password` |
+| Admin  | `admin@bank.ma`  | `password` |
 
-Note: This will impact Vite dev & build performances.
+## Features
 
-## Expanding the ESLint configuration
+**Client portal:**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Account overview with real-time balance (Compte courant + Épargne)
+- Transaction history with sorting and filtering (by type, category)
+- Spending breakdown chart by category
+- Transfer between accounts with business rule validation
+- Deposit funds
+- Cancel pending transactions
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Admin panel:**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- View all clients and their accounts
+- Freeze, reactivate, or close any account
+- Access any client's transaction history
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Business rules enforced:**
+
+- Frozen/closed accounts block all operations
+- Savings accounts cannot go into overdraft
+- Transfers to the same account are rejected
+- Only pending transactions can be cancelled
+- Access control enforced at API level (not just UI)
+
+## Architecture
+
+```
+src/
+├── api/              # Axios instance + typed service functions
+├── components/
+│   ├── account/      # Account detail, transaction table, forms
+│   ├── dashboard/    # Account cards, spending chart
+│   ├── forms/        # Login form
+│   ├── layout/       # Dashboard shell with nav
+│   └── ui/           # shadcn/ui components
+├── hooks/            # TanStack Query hooks (useAccounts, useTransactions, useAnalytics)
+├── lib/              # Business rules as pure functions (transaction-rules.ts)
+├── mocks/            # MSW handlers + mock data (simulates REST API)
+├── pages/            # Route-level page components
+├── stores/           # Zustand auth store
+└── types/            # Shared TypeScript types (domain entities)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Design decisions
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Business logic separated from React.** Domain rules (account validation, transfer constraints, cancellation rules) live in `src/lib/` as pure TypeScript functions with zero framework dependencies. This makes them independently testable, reusable, and easy to reason about.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+**Two layers of validation.** Zod validates form structure (is the input well-formed?). Domain rule functions validate business constraints (is this operation permitted given the current state?). Components only handle rendering.
+
+**MSW as the API layer.** Mock Service Worker intercepts HTTP requests in the browser, simulating a real REST API with authentication, authorization, and proper HTTP status codes (401, 403, 404). The frontend is fully decoupled from any backend — the same code would work against a real API by removing MSW and pointing Axios at the real server.
+
+**Access control at the API level.** Every mock endpoint checks authentication and authorization. A client requesting another client's data receives a 403 Forbidden — the security isn't just hidden buttons in the UI.
+
+**Money stored in centimes.** All amounts are integers representing centimes (1 MAD = 100 centimes) to avoid floating-point precision errors. Formatting to human-readable values happens only at the display layer.
+
+## Tech stack
+
+| Layer         | Technology                     |
+| ------------- | ------------------------------ |
+| Framework     | React 19 + Vite                |
+| Language      | TypeScript (strict mode)       |
+| Routing       | React Router                   |
+| Server state  | TanStack Query                 |
+| Client state  | Zustand                        |
+| Data tables   | TanStack Table                 |
+| Forms         | React Hook Form + Zod          |
+| Charts        | Recharts                       |
+| UI components | shadcn/ui + Tailwind CSS       |
+| API mocking   | MSW (Mock Service Worker)      |
+| Testing       | Vitest + React Testing Library |
+| Code quality  | ESLint + SonarCloud            |
+
+## Getting started
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start dev server
+pnpm dev
+
+# Run tests
+pnpm vitest run
+
+# Run tests with coverage
+pnpm vitest run --coverage
 ```
+
+## Testing
+
+Business rules are tested as pure functions — no React rendering, no DOM simulation, just input and output.
+
+```bash
+pnpm vitest run
+```
+
+```
+ ✓ src/lib/__tests__/transaction-rules.test.ts
+   ✓ canTransact — active/frozen/closed accounts
+   ✓ validateTransfer — normal, frozen source, closed destination,
+     same account, zero amount, savings overdraft
+   ✓ validateDeposit — normal, frozen, closed, zero amount
+   ✓ canCancelTransaction — pending vs non-pending
+```
+
+## API contract
+
+| Method | Endpoint                         | Description                             |
+| ------ | -------------------------------- | --------------------------------------- |
+| POST   | `/api/auth/login`                | Authenticate with email/password        |
+| GET    | `/api/auth/me`                   | Get current user from token             |
+| GET    | `/api/accounts`                  | List accounts (client: own, admin: all) |
+| GET    | `/api/accounts/:id`              | Account detail                          |
+| GET    | `/api/accounts/:id/transactions` | Transaction history with filters        |
+| GET    | `/api/accounts/:id/analytics`    | Spending breakdown by category          |
+| POST   | `/api/transactions/transfer`     | Create transfer between accounts        |
+| POST   | `/api/transactions/deposit`      | Create deposit                          |
+| PATCH  | `/api/transactions/:id/cancel`   | Cancel pending transaction              |
+| GET    | `/api/users`                     | List clients (admin only)               |
+| PATCH  | `/api/accounts/:id/status`       | Freeze/close/reactivate (admin only)    |
